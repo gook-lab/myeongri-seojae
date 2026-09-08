@@ -9,6 +9,8 @@
 
 [Demo](https://saju-blond-six.vercel.app) · [정확도 검증](docs/accuracy.md) · [화면과 움직임](docs/ux.md)
 
+<img src="docs/screenshots/cover.png" alt="명리서재 시작 화면" width="100%">
+
 ---
 
 하루의 운세를 점수로 보여주는 대신, 사용자가 지나온 시기와 앞으로의 흐름을 10년 단위 타임라인에서 비교할 수 있도록 만들었습니다. 결과를 맞다고 단정하기보다 계산 기준을 함께 보여주고 사용자가 자신의 경험과 대조하도록 구성했습니다.

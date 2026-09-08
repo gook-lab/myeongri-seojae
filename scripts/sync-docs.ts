@@ -39,15 +39,22 @@ function countPlaywright(): number {
 const unit = countVitest();
 const e2e = countPlaywright();
 
-const path = 'README.md';
-const before = readFileSync(path, 'utf8');
-const after = before
-  .replace(/Vitest 3 \(\*\*\d+\*\*\)/, `Vitest 3 (**${unit}**)`)
-  .replace(/Playwright 1\.62 \(\*\*\d+\*\*/, `Playwright 1.62 (**${e2e}**`);
+const paths = ['README.md', 'README.en.md'];
+let changed = false;
 
-if (after !== before) {
-  writeFileSync(path, after);
-  console.log(`README 갱신: 단위 ${unit} · E2E ${e2e}`);
-} else {
+for (const path of paths) {
+  const before = readFileSync(path, 'utf8');
+  const after = before
+    .replace(/Vitest 3 \(\*\*\d+\*\*\)/, `Vitest 3 (**${unit}**)`)
+    .replace(/Playwright 1\.62 \(\*\*\d+\*\*/, `Playwright 1.62 (**${e2e}**`);
+
+  if (after !== before) {
+    writeFileSync(path, after);
+    changed = true;
+    console.log(`${path} 갱신: 단위 ${unit} · E2E ${e2e}`);
+  }
+}
+
+if (!changed) {
   console.log(`이미 최신입니다: 단위 ${unit} · E2E ${e2e}`);
 }
