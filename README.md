@@ -7,7 +7,7 @@
 
 <sub>React 19 · TypeScript · Vite · Tailwind v4 · Zustand · Vitest · Playwright · MCP</sub>
 
-[Demo](https://saju-blond-six.vercel.app) · [정확도 검증](docs/accuracy.md) · [화면과 움직임](docs/ux.md)
+[Demo](https://myeongri-seojae.vercel.app) · [정확도 검증](docs/accuracy.md) · [화면과 움직임](docs/ux.md)
 
 <img src="docs/screenshots/cover.png" alt="명리서재 시작 화면" width="100%">
 

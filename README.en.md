@@ -7,7 +7,7 @@ No fear-mongering, no scoring, no personal data collection.
 
 <sub>React 19 · TypeScript · Vite · Tailwind v4 · Zustand · Vitest · Playwright · MCP</sub>
 
-[Demo](https://saju-blond-six.vercel.app) · [Accuracy](docs/accuracy.md) · [Screens & Motion](docs/ux.md)
+[Demo](https://myeongri-seojae.vercel.app) · [Accuracy](docs/accuracy.md) · [Screens & Motion](docs/ux.md)
 
 <img src="docs/screenshots/cover.png" alt="Myeongri Seojae intro screen" width="100%">
 
