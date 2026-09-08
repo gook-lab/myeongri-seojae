@@ -7,28 +7,30 @@ No fear-mongering, no scoring, no personal data collection.
 
 <sub>React 19 · TypeScript · Vite · Tailwind v4 · Zustand · Vitest · Playwright · MCP</sub>
 
+[Demo](https://saju-blond-six.vercel.app) · [Accuracy](docs/accuracy.md) · [Screens & Motion](docs/ux.md)
+
 ---
 
-Most saju apps focus on "today's fortune: 87 points." But what actually gives people chills isn't today's score—it's when **their own past finally makes sense**. You spread your life out in 10-year chunks and say "here's your age 25–34: pyeongwan daeun (wealth cycle)," and people start mapping their own life story onto that timeline.
+Instead of reducing a daily fortune to a score, the service presents past and future periods on a ten-year timeline. It shows the basis of each calculation and lets users compare the result with their own experience rather than declaring that an interpretation is correct.
 
-And this is the **only feature where accuracy actually matters**. Daily fortunes? Off by a day and nobody notices. But mess up daeun (10-year cycle) timing by a year, and the whole timeline gets shoved sideways.
+Small errors in a day pillar or the start of a daeun cycle can shift the full timeline. The implementation is checked against independent algorithms and astronomical data, with tests covering date, timezone, and solar-term boundaries.
 
 ## Screens
 
 | Intro | Calculation Basis | Life Timeline |
 |:--:|:--:|:--:|
 | <img src="docs/screenshots/01-intro.png" width="240"> | <img src="docs/screenshots/04-calculating.png" width="240"> | <img src="docs/screenshots/05-result.png" width="240"> |
-| Says what we *don't* do first.<br>Center lantern shows today's iljin (day cycle), freshly calculated | Instead of a fake progress bar,<br>**actual calculated values** line by line | Results start with the daeun timeline,<br>not a saju chart |
+| Introduces the interpretation and privacy policy before input | Shows values produced during each calculation step | Opens with the daeun timeline rather than a dense chart |
 
 | Compatibility | Deep Dive | Life Report |
 |:--:|:--:|:--:|
 | <img src="docs/screenshots/10-gunghap.png" width="240"> | <img src="docs/screenshots/07-detail.png" width="240"> | <img src="docs/screenshots/08-report.png" width="240"> |
-| No score.<br>**Shows which ohaeng (five elements) you actually need**, not which are "missing" | Gungwi (house), ohaeng balance, yongsin (favorable element)—<br>kept separate on the detail screen, not piled on results | Calculation basis included<br>as an A4 printable document |
+| Explains the relationship between two charts by category instead of one score | Separates gungwi, ohaeng balance, and yongsin into focused views | Includes calculation notes in an A4 printable report |
 
 | Daeun Expanded | Where's the DOB Going? | Dead Link |
 |:--:|:--:|:--:|
 | <img src="docs/screenshots/06-card-open.png" width="240"> | <img src="docs/screenshots/13-privacy.png" width="240"> | <img src="docs/screenshots/12-404.png" width="240"> |
-| **You type in the past 10 years yourself.**<br>We don't tell you it matches—you decide | Plain language, not legal prose.<br>**We don't hide bad news** | Tells you when a link broke |
+| Lets users add their own notes and compare them with each period | Explains how birth data is stored and transmitted in plain language | Provides a clear route back from an invalid URL |
 
 ## Tech Stack
 
@@ -60,12 +62,12 @@ And this is the **only feature where accuracy actually matters**. Daily fortunes
 | | |
 |---|---|
 | Solar terms vs. celestial mechanics | 3,624 samples · max deviation **55.8 seconds** |
-| Day cycle verified via Julian day | **73,414 days** · one constant explains them all |
+| Day cycle verified via Julian day | **73,414 days** checked |
 | Structural rules (Five Tiger Tally, Five Rat Tally) | 11,172 cases · mismatches **0** |
-| Cross-check with independent Python impl. | Derived the phase constant **from scratch** · pillar mismatches 0 |
+| Cross-check with independent Python implementation | Pillar mismatches 0 |
 | Entry chunk / engine chunk | 250KB budget / **100KB** (after removing calculation lib) |
-| Real bug found during development | **We were using Chinese lunar calendar** (off by one day in 3.6% of cases) |
-| Where words and actions split | Privacy statement says "nowhere," but **we were loading Google Fonts** |
+| Lunar-calendar issue corrected | Replaced Chinese lunar data that shifted some Korean dates by one day |
+| External request removed | Self-hosted fonts after identifying an unintended Google Fonts request |
 
 ## Read More
 
