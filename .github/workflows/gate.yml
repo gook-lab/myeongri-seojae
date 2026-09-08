@@ -30,6 +30,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: 운영 의존성 보안 검사
+        run: pnpm audit --prod --audit-level high
+
       # tzdata 가 한국 표준시 이력을 아는지부터 확인한다.
       # 러너의 ICU 가 빈약하면 골든이 통째로 거짓 통과할 수 있다.
       - name: tzdata 자가진단
