@@ -1,11 +1,15 @@
+minimumReleaseAge: 10080
+
 onlyBuiltDependencies:
   - esbuild
 
-# 공급망 하드닝 — react-doctor/require-pnpm-hardening
-#
-# minimumReleaseAge: 갓 올라온 버전은 설치하지 않는다. 침해된 패키지는 보통
-#   몇 시간~하루 안에 발각돼 unpublish 되므로, 7일을 기다리면 그 창을 피한다.
-# trustPolicy: 업데이트하면서 provenance/서명 같은 신뢰 신호가 **약해지는**
-#   버전을 조용히 받아들이지 않는다.
-minimumReleaseAge: 10080
+# 공급망 하드닝: 새 버전은 7일간 유예하고, 신뢰 신호가 약해지는 업데이트는 막습니다.
+overrides:
+  fast-uri@>=3.0.0 <3.1.6: '>=3.1.6'
+  fast-uri@>=3.1.2 <3.1.6: '>=3.1.6'
+  fast-uri@>=3.1.3 <3.1.6: '>=3.1.6'
+  hono@<4.13.5: '>=4.13.5'
+  qs@>=2.2.5 <6.16.0: '>=6.16.0'
+  qs@>=6.14.2 <=6.15.3: '>=6.16.0'
+
 trustPolicy: no-downgrade
