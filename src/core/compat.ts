@@ -284,8 +284,10 @@ export function polarityOf(pillars: FourPillars): Polarity {
   let yang = 0;
   let yin = 0;
   for (const p of list) {
-    (stemIdx(p.stem) % 2 === 0 ? yang++ : yin++);
-    (branchIdx(p.branch) % 2 === 0 ? yang++ : yin++);
+    if (stemIdx(p.stem) % 2 === 0) yang++;
+    else yin++;
+    if (branchIdx(p.branch) % 2 === 0) yang++;
+    else yin++;
   }
   const total = yang + yin;
   return { yang, yin, yangRatio: total === 0 ? 0.5 : yang / total };
