@@ -64,6 +64,9 @@ jobs:
       - name: 타입체크
         run: pnpm typecheck
 
+      - name: lint
+        run: pnpm lint
+
       - name: 빌드 (번들 게이트가 dist 를 본다)
         run: pnpm build
 
