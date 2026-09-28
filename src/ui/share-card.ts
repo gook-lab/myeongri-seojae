@@ -378,3 +378,231 @@ export async function shareCard(options: ShareCardOptions): Promise<ShareResult>
     };
   }
 }
+
+/**
+ * ─────────────────────────────────────────────────────────────────────────
+ * SNS 공유 카드 — 인스타·페북 형식 (T9 추가)
+ *
+ * 대운 칸 하나를 짧은 텍스트로 요약한 이미지.
+ * 두 가지 규격: 세로(1080×1920) · 정사각(1080×1080)
+ *
+ * 프라이버시: 생년월일을 **기본값으로 넣지 않는다.**
+ * 사용자가 옵션을 켤 때만 포함된다.
+ * 나이 구간만으로는 생일을 역산할 수 없다.
+ *
+ * 폰트: 이미 로드된 Gowun Batang 을 쓴다.
+ * 외부 요청이 없어야 한다.
+ */
+
+/** SNS 카드 규격 */
+export const SNS_CARD_VERTICAL_WIDTH = 1080;
+export const SNS_CARD_VERTICAL_HEIGHT = 1920;
+export const SNS_CARD_SQUARE_WIDTH = 1080;
+export const SNS_CARD_SQUARE_HEIGHT = 1080;
+
+export interface SNSCardOptions {
+  card: DaeunCard;
+  /** 생년월일도 넣을지 여부 */
+  includePersonalInfo?: boolean;
+  format: 'vertical' | 'square';
+  scale?: number;
+}
+
+/**
+ * 대운 카드의 한 줄 요약. 십성과 무엇을 하던 시기인지를 담는다.
+ * 테스트 가능하게 순수 함수로 분리했다.
+ */
+export function snsCardSummary(card: DaeunCard): string {
+  // 십성과 카테고리로 한 줄 요약. 텍스트는 이미 계산되어 있다.
+  const firstSentence = card.text.split('।')[0] || card.text;
+  return firstSentence.trim();
+}
+
+/**
+ * SNS 카드용 핵심 키워드 2~3개를 추출한다.
+ * 카테고리와 십성에서 가져온다.
+ */
+export function snsCardKeywords(card: DaeunCard): string[] {
+  const keywords: string[] = [];
+
+  // 카테고리와 십성을 키워드로 사용
+  keywords.push(card.category);
+  keywords.push(card.tenGod);
+
+  // 십이운성도 추가 (3개 키워드)
+  if (card.stage) {
+    keywords.push(card.stage);
+  }
+
+  return keywords.slice(0, 3);
+}
+
+/**
+ * SNS 카드를 캔버스에 그린다 (세로 또는 정사각).
+ * 폰트가 아직 로드되지 않았으면 기다린다.
+ */
+export async function renderSNSCard(
+  options: SNSCardOptions,
+): Promise<HTMLCanvasElement> {
+  const { card, format, includePersonalInfo = false } = options;
+  const scale = options.scale ?? 1;
+
+  // 폰트 로드를 기다리지 않으면 첫 렌더가 산세리프로 나온다
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    try {
+      await document.fonts.load(`700 100px ${FONT}`);
+      await document.fonts.ready;
+    } catch {
+      // 폰트 로드 실패는 치명적이지 않다. fallback 으로 그린다.
+    }
+  }
+
+  const [width, height] = format === 'vertical'
+    ? [SNS_CARD_VERTICAL_WIDTH, SNS_CARD_VERTICAL_HEIGHT]
+    : [SNS_CARD_SQUARE_WIDTH, SNS_CARD_SQUARE_HEIGHT];
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width * scale;
+  canvas.height = height * scale;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('canvas 2d context 를 만들지 못했습니다');
+  ctx.scale(scale, scale);
+
+  drawSNSCard(ctx, card, format, includePersonalInfo);
+  return canvas;
+}
+
+function drawSNSCard(
+  ctx: CanvasRenderingContext2D,
+  card: DaeunCard,
+  format: 'vertical' | 'square',
+  includePersonalInfo?: boolean,
+): void {
+  const W = format === 'vertical' ? SNS_CARD_VERTICAL_WIDTH : SNS_CARD_SQUARE_WIDTH;
+  const H = format === 'vertical' ? SNS_CARD_VERTICAL_HEIGHT : SNS_CARD_SQUARE_HEIGHT;
+
+  // 바탕 — 한지
+  ctx.fillStyle = PALETTE.hanji;
+  ctx.fillRect(0, 0, W, H);
+
+  const pad = format === 'vertical' ? 60 : 50;
+  const left = pad;
+  const right = W - pad;
+  const top = pad;
+  const contentMaxY = H - pad;
+
+  let y = top;
+
+  // 제목: 사이트 이름
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = PALETTE.inkFaint;
+  ctx.font = `400 28px ${FONT}`;
+  ctx.fillText('명 리 서 재', W / 2, y);
+
+  // 스페이서
+  y += format === 'vertical' ? 80 : 60;
+
+  // 나이 구간 + 간지
+  ctx.textAlign = 'center';
+  ctx.fillStyle = PALETTE.ink;
+  ctx.font = `700 72px ${FONT}`;
+  const ageDisplay = includePersonalInfo
+    ? `${card.startAge}~${card.endAge}세`
+    : `${card.startAge}~${card.endAge}세`;
+  ctx.fillText(ageDisplay, W / 2, y);
+
+  y += 90;
+
+  // 십성 · 카테고리
+  ctx.font = `400 36px ${FONT}`;
+  ctx.fillStyle = PALETTE.jumuk;
+  ctx.fillText(`${card.tenGod} · ${card.category}`, W / 2, y);
+
+  y += format === 'vertical' ? 80 : 60;
+
+  // 핵심 한 줄 요약
+  ctx.fillStyle = PALETTE.ink;
+  ctx.font = `400 32px ${FONT}`;
+  ctx.textAlign = 'left';
+  const summary = snsCardSummary(card);
+  const summaryLines = wrapLines(ctx, summary, right - left);
+  const maxSummaryLines = format === 'vertical' ? 4 : 2;
+  const displaySummary = summaryLines.slice(0, maxSummaryLines);
+
+  y = drawLines(ctx, displaySummary, left, y, 50, contentMaxY - 180, right - left);
+
+  // 스페이서
+  y += format === 'vertical' ? 60 : 40;
+
+  // 키워드 3개
+  const keywords = snsCardKeywords(card);
+  ctx.font = `400 28px ${FONT}`;
+  ctx.fillStyle = PALETTE.inkSoft;
+  ctx.textAlign = 'center';
+  const keywordStr = `# ${keywords.join(' # ')}`;
+  ctx.fillText(keywordStr, W / 2, y);
+
+  // 하단 — 개인정보 안내
+  ctx.fillStyle = PALETTE.inkFaint;
+  ctx.font = `400 20px ${FONT}`;
+  ctx.textAlign = 'center';
+  const footerText = includePersonalInfo !== false
+    ? '정확한 만세력으로 계산했습니다'
+    : '생년월일을 포함했습니다';
+  ctx.fillText(footerText, W / 2, H - 35);
+}
+
+/**
+ * SNS 카드용 파일명.
+ * 정사각은 insta/square, 세로는 insta/story 로 구분한다.
+ */
+export function snsCardFileName(card: DaeunCard, format: 'vertical' | 'square'): string {
+  const type = format === 'vertical' ? '스토리' : '정사각';
+  return `명리서재_${type}_${card.startAge}-${card.endAge}세.png`;
+}
+
+/**
+ * SNS 카드를 내보낸다.
+ * 모바일에서는 Web Share API 로 바로 카톡·메시지에 보낼 수 있고,
+ * 지원하지 않으면 다운로드로 떨어진다.
+ */
+export async function shareSNSCard(options: SNSCardOptions): Promise<ShareResult> {
+  try {
+    const canvas = await renderSNSCard(options);
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob((b) => resolve(b), 'image/png'),
+    );
+    if (!blob) return { method: 'failed', reason: '이미지를 만들지 못했습니다' };
+
+    const fileName = snsCardFileName(options.card, options.format);
+    const file = new File([blob], fileName, { type: 'image/png' });
+
+    const nav = navigator as Navigator & {
+      canShare?: (data: ShareData) => boolean;
+      share?: (data: ShareData) => Promise<void>;
+    };
+    if (nav.canShare?.({ files: [file] }) && nav.share) {
+      await nav.share({ files: [file] });
+      return { method: 'share' };
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    // revoke 를 즉시 하면 사파리에서 다운로드가 취소된다
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+    return { method: 'download' };
+  } catch (e) {
+    // 사용자가 공유 시트를 닫은 것은 실패가 아니다
+    if (e instanceof DOMException && e.name === 'AbortError') {
+      return { method: 'failed', reason: 'cancelled' };
+    }
+    return {
+      method: 'failed',
+      reason: e instanceof Error ? e.message : String(e),
+    };
+  }
+}

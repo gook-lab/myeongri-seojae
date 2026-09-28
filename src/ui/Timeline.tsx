@@ -52,6 +52,80 @@ function ShareButton({ card, title }: { card: DaeunCard; title?: string }) {
 }
 
 /**
+ * SNS 카드로 공유. 인스타·페북 스토리·정사각 두 규격을 제공한다.
+ * 기본값으로 생년월일을 넣지 않고, 옵션으로 포함할 수 있다.
+ */
+function SNSShareButton({ card }: { card: DaeunCard }) {
+  const [format, setFormat] = useState<'vertical' | 'square'>('vertical');
+  const [includePersonalInfo, setIncludePersonalInfo] = useState(false);
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
+
+  const label =
+    state === 'busy' ? '만드는 중…'
+    : state === 'done' ? '저장했습니다'
+    : state === 'failed' ? '다시 시도'
+    : '카드로 공유하기';
+
+  return (
+    <div className="mt-3.5">
+      <button
+        type="button"
+        disabled={state === 'busy'}
+        onClick={async (e) => {
+          e.stopPropagation();
+          setState('busy');
+          const { shareSNSCard } = await import('./share-card');
+          const r = await shareSNSCard({ card, format, includePersonalInfo });
+          if (r.method === 'failed' && r.reason !== 'cancelled') setState('failed');
+          else if (r.method === 'download') setState('done');
+          else setState('idle');
+        }}
+        className="w-full rounded-md border border-line bg-hanji px-3 py-2.5 text-sm text-ink-soft disabled:opacity-60"
+      >
+        {label}
+      </button>
+
+      {/* 규격 선택 */}
+      <div className="mt-2 flex gap-2">
+        <label className="flex items-center gap-2 text-xs text-ink-soft">
+          <input
+            type="radio"
+            name="sns-format"
+            value="vertical"
+            checked={format === 'vertical'}
+            onChange={(e) => setFormat(e.target.value as 'vertical' | 'square')}
+            className="cursor-pointer"
+          />
+          스토리 (1080×1920)
+        </label>
+        <label className="flex items-center gap-2 text-xs text-ink-soft">
+          <input
+            type="radio"
+            name="sns-format"
+            value="square"
+            checked={format === 'square'}
+            onChange={(e) => setFormat(e.target.value as 'vertical' | 'square')}
+            className="cursor-pointer"
+          />
+          정사각 (1080×1080)
+        </label>
+      </div>
+
+      {/* 개인정보 옵션 */}
+      <label className="mt-2 flex items-center gap-2 text-xs text-ink-soft">
+        <input
+          type="checkbox"
+          checked={includePersonalInfo}
+          onChange={(e) => setIncludePersonalInfo(e.target.checked)}
+          className="cursor-pointer"
+        />
+        생년월일도 넣을게요
+      </label>
+    </div>
+  );
+}
+
+/**
  * 인생 대조표 — 이 프로젝트의 태도가 제일 잘 드러나는 칸
  *
  * 사주가 맞다고 말해주는 대신, 그 10년에 실제로 무슨 일이 있었는지 직접
@@ -288,6 +362,7 @@ export function Timeline({
                     <p className="mt-3 text-xs leading-relaxed text-ink-faint">{card.theme}</p>
                     <LifeNote card={card} />
                     <ShareButton card={card} {...(name ? { title: name } : {})} />
+                    <SNSShareButton card={card} />
                   </div>
                 </div>
               )}
