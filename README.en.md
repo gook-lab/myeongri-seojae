@@ -44,7 +44,7 @@ Small errors in a day pillar or the start of a daeun cycle can shift the full ti
 | **Domain Engine** | Built from scratch (`core/pillars.ts`) + self-generated solar term table (23.6KB) |
 | **Lunar Calendar** | `korean-lunar-calendar` — Korean Astronomical Research Institute data |
 | **Observability** | `@sentry/react` — PII redaction gate must pass before anything ships |
-| **Testing** | Vitest 3 (**558**) · Playwright 1.62 (**252**, mobile · desktop · motion 3 suites) |
+| **Testing** | Vitest 3 (**556**) · Playwright 1.62 (**260**, mobile · desktop · motion 3 suites) |
 | **Verification Tools** | astronomy-engine (celestial mechanics) · lunar-javascript · manseryeok · **Python + skyfield/JPL DE421** |
 | **Integration** | Model Context Protocol SDK — engine exposed as 6 MCP tools |
 | **CI** | GitHub Actions — tzdata self-check → types → build → tests → E2E → golden re-diff |
