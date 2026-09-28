@@ -11,7 +11,7 @@
  * 라는 문구가 그걸 대놓고 권한다.
  */
 
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, useId } from 'react';
 import type { DaeunCard } from '../engine';
 import { useSajuStore } from '../store/saju-store';
 
@@ -24,7 +24,7 @@ function ShareButton({ card, title }: { card: DaeunCard; title?: string }) {
 
   const label =
     state === 'busy' ? '만드는 중…'
-    : state === 'done' ? '저장했습니다'
+    : state === 'done' ? '이미지를 저장했어요'
     : state === 'failed' ? '다시 시도'
     : '이 10년 공유하기';
 
@@ -48,6 +48,70 @@ function ShareButton({ card, title }: { card: DaeunCard; title?: string }) {
     >
       {label}
     </button>
+  );
+}
+
+/**
+ * SNS 카드로 공유. 인스타·페북 스토리·정사각 두 규격을 제공한다.
+ * 카드에는 나이 구간·대운 요약만 들어간다 — 생년월일·이름 같은 식별 정보는 넣지 않는다.
+ */
+function SNSShareButton({ card }: { card: DaeunCard }) {
+  const [format, setFormat] = useState<'vertical' | 'square'>('vertical');
+  // 대운 칸마다 이 버튼이 하나씩 있다 — 라디오 name 이 같으면 칸끼리 선택이 섞인다
+  const formatName = useId();
+  const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
+
+  const label =
+    state === 'busy' ? '만드는 중…'
+    : state === 'done' ? '이미지를 저장했어요'
+    : state === 'failed' ? '다시 시도'
+    : '카드로 공유하기';
+
+  return (
+    <div className="mt-3.5">
+      <button
+        type="button"
+        disabled={state === 'busy'}
+        onClick={async (e) => {
+          e.stopPropagation();
+          setState('busy');
+          const { shareSNSCard } = await import('./share-card');
+          const r = await shareSNSCard({ card, format });
+          if (r.method === 'failed' && r.reason !== 'cancelled') setState('failed');
+          else if (r.method === 'download') setState('done');
+          else setState('idle');
+        }}
+        className="w-full rounded-md border border-line bg-hanji px-3 py-2.5 text-sm text-ink-soft disabled:opacity-60"
+      >
+        {label}
+      </button>
+
+      {/* 규격 선택 */}
+      <div className="mt-2 flex gap-2">
+        <label className="flex items-center gap-2 text-xs text-ink-soft">
+          <input
+            type="radio"
+            name={formatName}
+            value="vertical"
+            checked={format === 'vertical'}
+            onChange={(e) => setFormat(e.target.value as 'vertical' | 'square')}
+            className="cursor-pointer"
+          />
+          스토리 (1080×1920)
+        </label>
+        <label className="flex items-center gap-2 text-xs text-ink-soft">
+          <input
+            type="radio"
+            name={formatName}
+            value="square"
+            checked={format === 'square'}
+            onChange={(e) => setFormat(e.target.value as 'vertical' | 'square')}
+            className="cursor-pointer"
+          />
+          정사각 (1080×1080)
+        </label>
+      </div>
+    </div>
   );
 }
 
@@ -288,6 +352,7 @@ export function Timeline({
                     <p className="mt-3 text-xs leading-relaxed text-ink-faint">{card.theme}</p>
                     <LifeNote card={card} />
                     <ShareButton card={card} {...(name ? { title: name } : {})} />
+                    <SNSShareButton card={card} />
                   </div>
                 </div>
               )}

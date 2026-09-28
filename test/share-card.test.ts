@@ -12,7 +12,19 @@
 import { describe, expect, it } from 'vitest';
 import { computeReading } from '../src/engine/index';
 import type { RawFormValues } from '../src/core/types';
-import { CARD_HEIGHT, CARD_WIDTH, lastSentenceEnd, shareFileName } from '../src/ui/share-card';
+import {
+  CARD_HEIGHT,
+  CARD_WIDTH,
+  lastSentenceEnd,
+  shareFileName,
+  SNS_CARD_VERTICAL_WIDTH,
+  SNS_CARD_VERTICAL_HEIGHT,
+  SNS_CARD_SQUARE_WIDTH,
+  SNS_CARD_SQUARE_HEIGHT,
+  snsCardSummary,
+  snsCardKeywords,
+  snsCardFileName,
+} from '../src/ui/share-card';
 
 const TODAY = new Date(Date.UTC(2026, 7, 21));
 
@@ -159,5 +171,93 @@ describe('문장 중간에서 끊지 않는다', () => {
     const cut = lastSentenceEnd(text);
     expect(text.slice(0, cut)).toBe('첫 문장입니다. 두 번째 문장입니다.');
     expect(text.slice(0, cut).endsWith('.')).toBe(true);
+  });
+});
+
+describe('SNS 공유 카드 — 규격', () => {
+  it('세로 카드는 인스타 스토리 규격이다 (1080×1920)', () => {
+    expect(SNS_CARD_VERTICAL_WIDTH).toBe(1080);
+    expect(SNS_CARD_VERTICAL_HEIGHT).toBe(1920);
+    expect(SNS_CARD_VERTICAL_HEIGHT / SNS_CARD_VERTICAL_WIDTH).toBeCloseTo(1.778, 2);
+  });
+
+  it('정사각 카드는 인스타·페북 규격이다 (1080×1080)', () => {
+    expect(SNS_CARD_SQUARE_WIDTH).toBe(1080);
+    expect(SNS_CARD_SQUARE_HEIGHT).toBe(1080);
+    expect(SNS_CARD_SQUARE_HEIGHT / SNS_CARD_SQUARE_WIDTH).toBe(1);
+  });
+});
+
+describe('SNS 카드 내용 생성', () => {
+  const { cards } = reading();
+
+  it('한 줄 요약을 생성한다', () => {
+    const card = cards[0] as typeof cards[0];
+    const summary = snsCardSummary(card);
+    expect(summary).toBeTruthy();
+    expect(summary.length).toBeGreaterThan(20);
+    expect(summary.length).toBeLessThan(150);
+  });
+
+  it('요약에 생년월일이 없다', () => {
+    const card = cards[0] as typeof cards[0];
+    const summary = snsCardSummary(card);
+    expect(summary).not.toMatch(/19\d{2}|20\d{2}/);
+  });
+
+  it('핵심 키워드 2~3개를 생성한다', () => {
+    const card = cards[0] as typeof cards[0];
+    const keywords = snsCardKeywords(card);
+    expect(keywords.length).toBeGreaterThanOrEqual(2);
+    expect(keywords.length).toBeLessThanOrEqual(3);
+    // 키워드는 모두 문자열이다
+    keywords.forEach((k) => expect(typeof k).toBe('string'));
+  });
+
+  it('키워드에 생년월일이 없다', () => {
+    const card = cards[0] as typeof cards[0];
+    const keywords = snsCardKeywords(card);
+    const joined = keywords.join(' ');
+    expect(joined).not.toMatch(/19\d{2}|20\d{2}/);
+  });
+});
+
+describe('SNS 카드 파일명', () => {
+  const { cards } = reading();
+
+  it('세로 카드 파일명에 "스토리"가 들어간다', () => {
+    for (const c of cards) {
+      const name = snsCardFileName(c, 'vertical');
+      expect(name).toContain('스토리');
+      expect(name).toContain(`${c.startAge}-${c.endAge}세`);
+      expect(name).toMatch(/\.png$/);
+    }
+  });
+
+  it('정사각 카드 파일명에 "정사각"이 들어간다', () => {
+    for (const c of cards) {
+      const name = snsCardFileName(c, 'square');
+      expect(name).toContain('정사각');
+      expect(name).toContain(`${c.startAge}-${c.endAge}세`);
+      expect(name).toMatch(/\.png$/);
+    }
+  });
+
+  it('파일명에 생년월일이 없다', () => {
+    for (const c of cards) {
+      const verticalName = snsCardFileName(c, 'vertical');
+      const squareName = snsCardFileName(c, 'square');
+      expect(verticalName).not.toMatch(/19\d{2}[-/.]?\d{2}[-/.]?\d{2}/);
+      expect(squareName).not.toMatch(/19\d{2}[-/.]?\d{2}[-/.]?\d{2}/);
+    }
+  });
+
+  it('파일명이 파일시스템에 안전하다', () => {
+    for (const c of cards) {
+      const verticalName = snsCardFileName(c, 'vertical');
+      const squareName = snsCardFileName(c, 'square');
+      expect(verticalName).not.toMatch(/[/\\:*?"<>|]/);
+      expect(squareName).not.toMatch(/[/\\:*?"<>|]/);
+    }
   });
 });

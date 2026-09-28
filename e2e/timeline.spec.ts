@@ -1082,3 +1082,64 @@ test.describe('신년 — 어느 해를 볼지 고른다', () => {
     }
   });
 });
+
+test.describe('SNS 공유 카드', () => {
+  test('펼친 칸에 카드로 공유하기 버튼이 나온다', async ({ page }) => {
+    await openApp(page);
+    await page.getByRole('button', { name: /^사주 보기/ }).click();
+    await fillBirth(page, '1957', '6', '15');
+    await page.getByRole('button', { name: '사주 풀어보기' }).click();
+
+    const timeline = page.getByRole('region', { name: '대운 인생 타임라인' });
+    // 현재 대운이 기본으로 펼쳐져 있음
+    const currentCard = timeline.locator('button[aria-expanded="true"]').first();
+    const cardContent = currentCard.locator('..');
+
+    // 카드로 공유하기 버튼이 보인다
+    await expect(cardContent.getByRole('button', { name: /카드로 공유하기/ })).toBeVisible();
+  });
+
+  test('규격 선택 옵션이 보인다', async ({ page }) => {
+    await openApp(page);
+    await page.getByRole('button', { name: /^사주 보기/ }).click();
+    await fillBirth(page, '1957', '6', '15');
+    await page.getByRole('button', { name: '사주 풀어보기' }).click();
+
+    const timeline = page.getByRole('region', { name: '대운 인생 타임라인' });
+    const currentCard = timeline.locator('button[aria-expanded="true"]').first();
+    const cardContent = currentCard.locator('..');
+
+    // 규격 선택지가 보인다
+    await expect(cardContent.getByLabel(/스토리/)).toBeVisible();
+    await expect(cardContent.getByLabel(/정사각/)).toBeVisible();
+
+    // 스토리가 기본으로 선택됨
+    await expect(cardContent.getByLabel(/스토리/)).toBeChecked();
+  });
+
+  test('공유 카드에는 생년월일 옵션이 없다 — 식별 정보는 넣지 않는다', async ({ page }) => {
+    await openApp(page);
+    await page.getByRole('button', { name: /^사주 보기/ }).click();
+    await fillBirth(page, '1957', '6', '15');
+    await page.getByRole('button', { name: '사주 풀어보기' }).click();
+
+    const timeline = page.getByRole('region', { name: '대운 인생 타임라인' });
+    await expect(timeline.getByRole('button', { name: '카드로 공유하기' }).first()).toBeVisible();
+    await expect(timeline.getByLabel(/생년월일/)).toHaveCount(0);
+  });
+
+  test('정사각 규격으로 전환할 수 있다', async ({ page }) => {
+    await openApp(page);
+    await page.getByRole('button', { name: /^사주 보기/ }).click();
+    await fillBirth(page, '1957', '6', '15');
+    await page.getByRole('button', { name: '사주 풀어보기' }).click();
+
+    const timeline = page.getByRole('region', { name: '대운 인생 타임라인' });
+    const currentCard = timeline.locator('button[aria-expanded="true"]').first();
+    const cardContent = currentCard.locator('..');
+
+    const squareRadio = cardContent.getByLabel(/정사각/);
+    await squareRadio.click();
+    await expect(squareRadio).toBeChecked();
+  });
+});
