@@ -11,7 +11,7 @@
  * 라는 문구가 그걸 대놓고 권한다.
  */
 
-import { useState, type CSSProperties } from 'react';
+import { useState, type CSSProperties, useId } from 'react';
 import type { DaeunCard } from '../engine';
 import { useSajuStore } from '../store/saju-store';
 
@@ -53,11 +53,12 @@ function ShareButton({ card, title }: { card: DaeunCard; title?: string }) {
 
 /**
  * SNS 카드로 공유. 인스타·페북 스토리·정사각 두 규격을 제공한다.
- * 기본값으로 생년월일을 넣지 않고, 옵션으로 포함할 수 있다.
+ * 카드에는 나이 구간·대운 요약만 들어간다 — 생년월일·이름 같은 식별 정보는 넣지 않는다.
  */
 function SNSShareButton({ card }: { card: DaeunCard }) {
   const [format, setFormat] = useState<'vertical' | 'square'>('vertical');
-  const [includePersonalInfo, setIncludePersonalInfo] = useState(false);
+  // 대운 칸마다 이 버튼이 하나씩 있다 — 라디오 name 이 같으면 칸끼리 선택이 섞인다
+  const formatName = useId();
   const [state, setState] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
 
   const label =
@@ -75,7 +76,7 @@ function SNSShareButton({ card }: { card: DaeunCard }) {
           e.stopPropagation();
           setState('busy');
           const { shareSNSCard } = await import('./share-card');
-          const r = await shareSNSCard({ card, format, includePersonalInfo });
+          const r = await shareSNSCard({ card, format });
           if (r.method === 'failed' && r.reason !== 'cancelled') setState('failed');
           else if (r.method === 'download') setState('done');
           else setState('idle');
@@ -90,7 +91,7 @@ function SNSShareButton({ card }: { card: DaeunCard }) {
         <label className="flex items-center gap-2 text-xs text-ink-soft">
           <input
             type="radio"
-            name="sns-format"
+            name={formatName}
             value="vertical"
             checked={format === 'vertical'}
             onChange={(e) => setFormat(e.target.value as 'vertical' | 'square')}
@@ -101,7 +102,7 @@ function SNSShareButton({ card }: { card: DaeunCard }) {
         <label className="flex items-center gap-2 text-xs text-ink-soft">
           <input
             type="radio"
-            name="sns-format"
+            name={formatName}
             value="square"
             checked={format === 'square'}
             onChange={(e) => setFormat(e.target.value as 'vertical' | 'square')}
@@ -110,17 +111,6 @@ function SNSShareButton({ card }: { card: DaeunCard }) {
           정사각 (1080×1080)
         </label>
       </div>
-
-      {/* 개인정보 옵션 */}
-      <label className="mt-2 flex items-center gap-2 text-xs text-ink-soft">
-        <input
-          type="checkbox"
-          checked={includePersonalInfo}
-          onChange={(e) => setIncludePersonalInfo(e.target.checked)}
-          className="cursor-pointer"
-        />
-        생년월일도 넣을게요
-      </label>
     </div>
   );
 }

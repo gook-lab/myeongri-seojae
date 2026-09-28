@@ -1117,26 +1117,15 @@ test.describe('SNS 공유 카드', () => {
     await expect(cardContent.getByLabel(/스토리/)).toBeChecked();
   });
 
-  test('생년월일 옵션을 켤 수 있다', async ({ page }) => {
+  test('공유 카드에는 생년월일 옵션이 없다 — 식별 정보는 넣지 않는다', async ({ page }) => {
     await openApp(page);
     await page.getByRole('button', { name: /^사주 보기/ }).click();
     await fillBirth(page, '1957', '6', '15');
     await page.getByRole('button', { name: '사주 풀어보기' }).click();
 
     const timeline = page.getByRole('region', { name: '대운 인생 타임라인' });
-    const currentCard = timeline.locator('button[aria-expanded="true"]').first();
-    const cardContent = currentCard.locator('..');
-
-    // 생년월일 옵션이 보인다
-    const personalInfoCheckbox = cardContent.getByLabel(/생년월일도 넣을게요/);
-    await expect(personalInfoCheckbox).toBeVisible();
-
-    // 기본값은 체크 해제
-    await expect(personalInfoCheckbox).not.toBeChecked();
-
-    // 체크할 수 있다
-    await personalInfoCheckbox.check();
-    await expect(personalInfoCheckbox).toBeChecked();
+    await expect(timeline.getByRole('button', { name: '카드로 공유하기' }).first()).toBeVisible();
+    await expect(timeline.getByLabel(/생년월일/)).toHaveCount(0);
   });
 
   test('정사각 규격으로 전환할 수 있다', async ({ page }) => {

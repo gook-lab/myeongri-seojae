@@ -402,8 +402,6 @@ export const SNS_CARD_SQUARE_HEIGHT = 1080;
 
 export interface SNSCardOptions {
   card: DaeunCard;
-  /** 생년월일도 넣을지 여부 */
-  includePersonalInfo?: boolean;
   format: 'vertical' | 'square';
   scale?: number;
 }
@@ -444,7 +442,7 @@ export function snsCardKeywords(card: DaeunCard): string[] {
 export async function renderSNSCard(
   options: SNSCardOptions,
 ): Promise<HTMLCanvasElement> {
-  const { card, format, includePersonalInfo = false } = options;
+  const { card, format } = options;
   const scale = options.scale ?? 1;
 
   // 폰트 로드를 기다리지 않으면 첫 렌더가 산세리프로 나온다
@@ -468,7 +466,7 @@ export async function renderSNSCard(
   if (!ctx) throw new Error('canvas 2d context 를 만들지 못했습니다');
   ctx.scale(scale, scale);
 
-  drawSNSCard(ctx, card, format, includePersonalInfo);
+  drawSNSCard(ctx, card, format);
   return canvas;
 }
 
@@ -476,7 +474,6 @@ function drawSNSCard(
   ctx: CanvasRenderingContext2D,
   card: DaeunCard,
   format: 'vertical' | 'square',
-  includePersonalInfo?: boolean,
 ): void {
   const W = format === 'vertical' ? SNS_CARD_VERTICAL_WIDTH : SNS_CARD_SQUARE_WIDTH;
   const H = format === 'vertical' ? SNS_CARD_VERTICAL_HEIGHT : SNS_CARD_SQUARE_HEIGHT;
@@ -541,14 +538,11 @@ function drawSNSCard(
   const keywordStr = `# ${keywords.join(' # ')}`;
   ctx.fillText(keywordStr, W / 2, y);
 
-  // 하단 — 개인정보 안내
+  // 하단 — 출처 한 줄 (기존 카드 푸터와 같은 문장)
   ctx.fillStyle = PALETTE.inkFaint;
   ctx.font = `400 20px ${FONT}`;
   ctx.textAlign = 'center';
-  const footerText = includePersonalInfo
-    ? '정확한 만세력으로 계산했습니다 (생년월일 포함)'
-    : '정확한 만세력으로 계산했습니다';
-  ctx.fillText(footerText, W / 2, H - 35);
+  ctx.fillText('정확한 만세력으로 계산한 대운입니다', W / 2, H - 35);
 }
 
 /**
