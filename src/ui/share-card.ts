@@ -507,9 +507,7 @@ function drawSNSCard(
   ctx.textAlign = 'center';
   ctx.fillStyle = PALETTE.ink;
   ctx.font = `700 72px ${FONT}`;
-  const ageDisplay = includePersonalInfo
-    ? `${card.startAge}~${card.endAge}세`
-    : `${card.startAge}~${card.endAge}세`;
+  const ageDisplay = `${card.startAge}~${card.endAge}세`;
   ctx.fillText(ageDisplay, W / 2, y);
 
   y += 90;
@@ -547,9 +545,9 @@ function drawSNSCard(
   ctx.fillStyle = PALETTE.inkFaint;
   ctx.font = `400 20px ${FONT}`;
   ctx.textAlign = 'center';
-  const footerText = includePersonalInfo !== false
-    ? '정확한 만세력으로 계산했습니다'
-    : '생년월일을 포함했습니다';
+  const footerText = includePersonalInfo
+    ? '정확한 만세력으로 계산했습니다 (생년월일 포함)'
+    : '정확한 만세력으로 계산했습니다';
   ctx.fillText(footerText, W / 2, H - 35);
 }
 

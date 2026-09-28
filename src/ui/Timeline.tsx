@@ -24,7 +24,7 @@ function ShareButton({ card, title }: { card: DaeunCard; title?: string }) {
 
   const label =
     state === 'busy' ? '만드는 중…'
-    : state === 'done' ? '저장했습니다'
+    : state === 'done' ? '이미지를 저장했어요'
     : state === 'failed' ? '다시 시도'
     : '이 10년 공유하기';
 
@@ -62,7 +62,7 @@ function SNSShareButton({ card }: { card: DaeunCard }) {
 
   const label =
     state === 'busy' ? '만드는 중…'
-    : state === 'done' ? '저장했습니다'
+    : state === 'done' ? '이미지를 저장했어요'
     : state === 'failed' ? '다시 시도'
     : '카드로 공유하기';
 
